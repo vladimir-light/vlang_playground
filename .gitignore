@@ -1,0 +1,6 @@
+*.exe
+*.bak
+*.db
+*.sqlite
+*.vsql
+*.txt
