@@ -4,7 +4,7 @@ import rand
 import db.sqlite
 
 const (
-	total_lines          = 100_000
+	rows_to_insert          = 100_000
 	db_table_name        = 'random_lines'
 	db_file_name         = 'million_lines_orm.db'
 	db_insert_chunk_size = 10000
@@ -13,7 +13,7 @@ const (
 // sets a custom table name. Default is struct name (case-sensitive)
 [table: 'random_lines']
 struct RandomLine {
-	id         int    [primary; sql: serial] // a field named `id` of integer type must be the first field
+	id         int    [primary; sql: serial]
 	rand_str   string [nonull; required]
 	created_at string [default: 'CURRENT_TIMESTAMP'; sql_type: 'DATETIME']
 }
@@ -28,6 +28,7 @@ fn prune_table(db sqlite.DB) {
 	sw := time.new_stopwatch()
 	found := db.q_int('SELECT COUNT(*) FROM ${db_table_name}')
 	if found > 0 {
+		println('${found} rows found! truncating table...')
 		db.exec_none('DELETE FROM "${db_table_name}"')
 	}
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
@@ -35,8 +36,8 @@ fn prune_table(db sqlite.DB) {
 
 fn fill_table_with_rand_data(db sqlite.DB) {
 	sw := time.new_stopwatch()
-	mut rows := []RandomLine{cap: total_lines}
-	for i := 0; i < total_lines; i++ {
+	mut rows := []RandomLine{cap: rows_to_insert}
+	for i := 0; i < rows_to_insert; i++ {
 		rows << RandomLine{
 			rand_str: 'Random Line with ${rand.ulid()}'
 		}
@@ -56,7 +57,8 @@ fn main() {
 	sw := time.new_stopwatch()
 	mut db := sqlite.connect(db_file_name)!
 	defer {
-		db.close() or { panic('Konnte DB nicht mehr schließen!') }
+		// I think it's unnecessary... It's not a MySQL/PostgeSQL DB
+		db.close() or { panic('Could not close DB!') }
 	}
 	check_table(db)
 	prune_table(db)

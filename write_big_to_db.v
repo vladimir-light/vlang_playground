@@ -6,19 +6,14 @@ import os
 
 const (
 	file_name             = 'dummy_file.txt'
-	total_lines           = 6_500_000
-	read_file_lap         = 1_000_000
+	rows_to_insert        = 6_500_000
+	read_batch            = 1_000_000
 	db_table_name         = 'random_lines'
-	db_create_table_stmt  = 'create table if not exists ${db_table_name} (line_num integer primary key, line text default \'\');'
+	db_create_table_stmt  = 'CREATE TABLE IF NOT EXISTS ${db_table_name} (line_num integer primary key, line text default \'\');'
 	db_database_file_name = 'million_lines.db'
 	db_database_in_memory = ':in_memory:'
 	db_insert_chunk_size  = 10000
 )
-
-struct NewFullLine {
-	id   i16    [required]
-	line string [required]
-}
 
 fn db_conn(db_name string) !sqlite.DB {
 	if db_name == db_database_in_memory && !os.is_file(db_name) {
@@ -39,16 +34,15 @@ fn check_table(db sqlite.DB) {
 //[if debug]
 fn populate_db_with_lines_batch(db sqlite.DB, chunk_size int) {
 	sw := time.new_stopwatch()
-	println('Try to insert ${total_lines} rows into DB in batches of ${chunk_size}...')
-	mut new_rows := []string{cap: total_lines}
+	println('Try to insert ${rows_to_insert} rows into DB in batches of ${chunk_size}...')
+	mut new_rows := []string{cap: rows_to_insert}
 
-	for i in 0 .. total_lines {
+	for i in 0 .. rows_to_insert {
 		non_zero_idx := (i + 1)
-		new_rows << '#${non_zero_idx} Random UUID is - `${rand.ulid()}`'
+		new_rows << '#${non_zero_idx} Random UUID is - `${rand.uuid_v4()}`'
 	}
 
 	chunked_rows := arrays.chunk(new_rows, chunk_size)
-	// dump(chunked_rows[0])
 	mut insert_stmts_list := []string{}
 
 	for _, chunk in chunked_rows {
@@ -81,12 +75,12 @@ fn read_all_from_db(db sqlite.DB) {
 
 	rows, exec_dode := db.exec('SELECT * FROM ${db_table_name} ORDER BY 2 ASC')
 	if sqlite.is_error(exec_dode) {
-		eprintln('ERROR: SQL Query konnte nicht ausgeführt werden!')
+		eprintln('ERROR: SQL query could not be executed!')
 		dump(exec_dode)
 	} else {
 		for idx, line in rows {
 			non_zeor_idx := (idx + 1)
-			if non_zeor_idx % read_file_lap == 0 {
+			if non_zeor_idx % read_batch == 0 {
 				dump(line)
 			}
 		}
@@ -102,8 +96,6 @@ fn main() {
 	purge_table(db)
 	populate_db_with_lines_batch(db, db_insert_chunk_size)
 	read_all_from_db(db)
-
-	// read all lines
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 	println('FINITO!')
 }

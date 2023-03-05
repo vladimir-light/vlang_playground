@@ -3,12 +3,12 @@ import time
 import rand
 
 const (
-	file_name     = 'dummy_file.txt'
+	file_name     = 'big_file.txt'
 	total_lines   = 6_500_000
-	read_file_lap = 1000_000
+	read_file_lap = 1_000_000
 )
 
-[if debug]
+//[if debug]
 fn remove_old_file(file_name string) {
 	if os.exists(file_name) {
 		os.rm(file_name) or { panic(err) }
@@ -16,7 +16,7 @@ fn remove_old_file(file_name string) {
 	}
 }
 
-[if debug]
+//[if debug]
 fn write_random_lines_to_file(file_name string) {
 	sw := time.new_stopwatch()
 	mut f_out := os.create(file_name) or { panic(err) }
@@ -24,7 +24,7 @@ fn write_random_lines_to_file(file_name string) {
 	println('Nun werden ${total_lines} Zeilen geschrieben...')
 	for i in 0 .. total_lines {
 		non_zero_idx := (i + 1)
-		line := '#${non_zero_idx}: RANDOM String is - `${rand.ulid()}`'
+		line := '#${non_zero_idx}: RANDOM uuid is - `${rand.uuid_v4()}`'
 		f_out.writeln(line) or { panic(err) }
 	}
 	f_out.close()
@@ -32,6 +32,7 @@ fn write_random_lines_to_file(file_name string) {
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 }
 
+[if debug]
 fn read_lines_from_file(file_name string) {
 	sw := time.new_stopwatch()
 	mut lines_read := 0
@@ -40,7 +41,6 @@ fn read_lines_from_file(file_name string) {
 			lines_read++
 			line_num := (idx + 1)
 			if line_num % read_file_lap == 0 {
-				dump(line_num)
 				dump(line)
 			}
 		}
