@@ -11,8 +11,8 @@ Some tests and comparisons.
 
 ### sqlite3 db as file, no ORM
 
-* [ ] Write many (6M+) rows to a sqlite3 DB
-* [ ] Read many (6M+) rows form a sqlite3 DB
+* [x] Write many (6M+) rows to a sqlite3 DB
+* [x] Read many (6M+) rows form a sqlite3 DB
 
 
 ### sqlite3 db as file with ORM

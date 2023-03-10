@@ -5,28 +5,19 @@ import arrays
 import os
 
 const (
-	file_name             = 'dummy_file.txt'
 	rows_to_insert        = 6_500_000
-	read_batch            = 1_000_000
 	db_table_name         = 'random_lines'
+	db_file_name          = 'million_lines'
+	db_database_file_name = '${db_file_name}.db'
+	db_database_file_path = os.join_path(os.cache_dir(), db_database_file_name)
 	db_create_table_stmt  = 'CREATE TABLE IF NOT EXISTS ${db_table_name} (line_num integer primary key, line text default \'\');'
-	db_database_file_name = 'million_lines.db'
-	db_database_in_memory = ':in_memory:'
 	db_insert_chunk_size  = 10000
 )
 
-fn db_conn(db_name string) !sqlite.DB {
-	if db_name == db_database_in_memory && !os.is_file(db_name) {
-		eprintln('Es wird mit einer :in_memory: DB gearbeitet...')
-		mut db := sqlite.connect(db_name)!
-		return db
-	}
-	mut db := sqlite.connect(db_name)!
-
-	return db
+fn db_conn(db_file string) !sqlite.DB {
+	return sqlite.connect(db_file)!
 }
 
-//[if debug]
 fn check_table(db sqlite.DB) {
 	db.exec(db_create_table_stmt)
 }
@@ -58,7 +49,6 @@ fn populate_db_with_lines_batch(db sqlite.DB, chunk_size int) {
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 }
 
-//[if debug]
 fn purge_table(db sqlite.DB) {
 	sw := time.new_stopwatch()
 	num_rows := db.q_int('SELECT COUNT(*) FROM ${db_table_name}')
@@ -69,33 +59,13 @@ fn purge_table(db sqlite.DB) {
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 }
 
-[if debug]
-fn read_all_from_db(db sqlite.DB) {
-	sw := time.new_stopwatch()
-
-	rows, exec_dode := db.exec('SELECT * FROM ${db_table_name} ORDER BY 2 ASC')
-	if sqlite.is_error(exec_dode) {
-		eprintln('ERROR: SQL query could not be executed!')
-		dump(exec_dode)
-	} else {
-		for idx, line in rows {
-			non_zeor_idx := (idx + 1)
-			if non_zeor_idx % read_batch == 0 {
-				dump(line)
-			}
-		}
-	}
-	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
-}
-
 [console]
 fn main() {
 	sw := time.new_stopwatch()
-	db := db_conn(db_database_file_name) or { panic('Can not connect to a DB...') }
+	mut db := db_conn(db_database_file_path) or { panic('Can not connect to a DB...') }
 	check_table(db)
 	purge_table(db)
 	populate_db_with_lines_batch(db, db_insert_chunk_size)
-	read_all_from_db(db)
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 	println('FINITO!')
 }
