@@ -21,10 +21,11 @@ fn file_is_ok() !bool {
 	return true
 }
 
-fn read_lines_from_file() {
+fn read_lines_from_file(path_to_file string) {
 	sw := time.new_stopwatch()
+	println('Trying to read from ${path_to_file}...')
 	mut lines_read := 0
-	rows := os.read_lines(file_path) or { panic(err) }
+	rows := os.read_lines(path_to_file) or { panic(err) }
 
 	for idx, line in rows {
 		lines_read++
@@ -46,7 +47,7 @@ fn main() {
 		eprintln(err)
 		exit(1)
 	}
-	read_lines_from_file()
+	read_lines_from_file(file_path)
 
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 	println('FINITO!')
