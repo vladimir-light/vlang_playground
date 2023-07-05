@@ -17,6 +17,7 @@ fn db_conn(db_name string) !sqlite.DB {
 }
 
 fn check_table(db sqlite.DB) {
+	// Check if table exists!
 	sql := 'SELECT COUNT(DISTINCT tbl_name) FROM sqlite_master WHERE type=\'table\' AND name=\'${db_table_name}\''
 	if db.q_int(sql) < 1 {
 		panic('There\'s no table \'${db_table_name}\' in DB')
@@ -28,7 +29,7 @@ fn read_all_from_db(db sqlite.DB) {
 
 	res := db.q_int('SELECT COUNT(*) FROM ${db_table_name}')
 	if res < 1 {
-		eprintln('There\'s nothing to read from table and/or database')
+		eprintln("There's nothing to read from table and/or database")
 		exit(1)
 	}
 
@@ -50,7 +51,10 @@ fn read_all_from_db(db sqlite.DB) {
 [console]
 fn main() {
 	sw := time.new_stopwatch()
+	//dump(os.user_os())
 	mut db := db_conn(db_database_file_path) or { panic('Can not connect to a DB...') }
+	db.synchronization_mode(sqlite.SyncMode.off)
+	db.journal_mode(sqlite.JournalMode.memory)
 	check_table(db)
 	read_all_from_db(db)
 

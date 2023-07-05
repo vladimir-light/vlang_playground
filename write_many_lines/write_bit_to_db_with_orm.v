@@ -1,21 +1,20 @@
-import time
-import rand
-// import arrays
 import db.sqlite
+import rand
+import time
 
 const (
-	rows_to_insert          = 100_000
-	db_table_name        = 'random_lines'
-	db_file_name         = 'million_lines_orm.db'
-	db_insert_chunk_size = 10000
+	rows_to_insert = 100_000
+	db_table_name  = 'random_lines'
+	db_file_name   = 'million_lines_orm.db'
 )
 
 // sets a custom table name. Default is struct name (case-sensitive)
 [table: 'random_lines']
 struct RandomLine {
-	id         int    [primary; sql: serial]
-	rand_str   string [nonull; required]
-	created_at string [default: 'CURRENT_TIMESTAMP'; sql_type: 'DATETIME']
+	id         int       [primary; sql: serial]
+	rand_str   string    [nonull; required]
+	created_at time.Time [default: 'CURRENT_TIMESTAMP'; sql_type: 'DATETIME']
+	updated_at string    [sql_type: 'DATETIME']
 }
 
 fn check_table(db sqlite.DB) {

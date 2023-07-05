@@ -10,7 +10,7 @@ const (
 	db_file_name          = 'million_lines'
 	db_database_file_name = '${db_file_name}.db'
 	db_database_file_path = os.join_path(os.cache_dir(), db_database_file_name)
-	db_create_table_stmt  = 'CREATE TABLE IF NOT EXISTS ${db_table_name} (line_num integer primary key, line text default \'\');'
+	db_create_table_stmt  = 'CREATE TABLE IF NOT EXISTS ${db_table_name} (line_num integer primary key, line text default \'\', created_at datetime DEFAULT CURRENT_TIMESTAMP)'
 	db_insert_chunk_size  = 10000
 )
 
@@ -63,6 +63,8 @@ fn purge_table(db sqlite.DB) {
 fn main() {
 	sw := time.new_stopwatch()
 	mut db := db_conn(db_database_file_path) or { panic('Can not connect to a DB...') }
+	db.synchronization_mode(sqlite.SyncMode.off)
+	db.journal_mode(sqlite.JournalMode.memory)
 	check_table(db)
 	purge_table(db)
 	populate_db_with_lines_batch(db, db_insert_chunk_size)
