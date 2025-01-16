@@ -2,11 +2,9 @@ import os
 import time
 import rand
 
-const (
-	file_name   = 'big_file.txt'
-	file_path   = os.join_path(os.cache_dir(), file_name)
-	total_lines = 6_500_000
-)
+const file_name = 'big_file_18.5M_lines.txt'
+const file_path = os.join_path(os.cache_dir(), file_name)
+const total_lines = 18_500_000
 
 fn remove_old_file_if_exist(path_to_file string) {
 	if os.exists(path_to_file) && os.is_file(path_to_file) {
@@ -30,7 +28,7 @@ fn write_random_lines_to_file(path_to_file string) {
 	println('Note: ${@FN}() took: ${sw.elapsed().milliseconds()} ms')
 }
 
-[console]
+@[console]
 fn main() {
 	sw := time.new_stopwatch()
 	remove_old_file_if_exist(file_path)

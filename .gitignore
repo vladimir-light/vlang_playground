@@ -4,3 +4,4 @@
 *.sqlite
 *.vsql
 *.txt
+*.log
